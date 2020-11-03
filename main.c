@@ -141,21 +141,21 @@ static int set_page_mode(struct kvm_info *kvm_info){
 	struct kvm_segment seg = {
 		.base = 0,
 		.limit = 0xffffffff,
-		.selector = 1 << 3,
-		.present = 1,
-		.type = 11, /* Code: execute, read, accessed */
-		.dpl = 0,
-		.db = 1,
-		.s = 1, /* Code/data */
-		.l = 0,
-		.g = 1, /* 4KB granularity */
+		.selector = 0,
+		.present = 1,  // segment is present 
+		.type = 11,    // code/read accessed
+		.dpl = 0,      // DPL, CPL
+		.db = 1,       // 1 for 32-bit code and data segment ; 0 for 16 bit code and data segment
+		.s = 1,        // 1 :Code/data; 0: system segment
+		.l = 0,        // 1 : executed in 64-bit mode ;  0: executed in 32-bit mode
+		.g = 1,        //4KB granularity  of segment limit field
 	};
 
 
 	kvm_info->sregs.cs = seg;
 
-	seg.type = 3; /* Data: read/write, accessed */
-	seg.selector = 2 << 3;
+	seg.type = 3; //Data: read/write, accessed
+	seg.selector = 1 << 3;
 
 	kvm_info->sregs.ds = kvm_info->sregs.es = kvm_info->sregs.fs = kvm_info->sregs.gs = kvm_info->sregs.ss = seg;
 	kvm_info->sregs.efer  = EFER_VAL;
@@ -168,7 +168,7 @@ static int set_page_mode(struct kvm_info *kvm_info){
 	                            1U << PGD_S_BIT | GUEST_CODE_PA_BASE;
 	//set pgd to cr3
 	kvm_info->sregs.cr3 = pgd;
-	//enable page size extension
+	//enable page size extension , 4MB
 	kvm_info->sregs.cr4  = 1U << CR4_PSE_BIT;
 	// enable protect mode and page
 	kvm_info->sregs.cr0  = 1U << CR0_PE_BIT | 1U << CR0_PG_BIT;
