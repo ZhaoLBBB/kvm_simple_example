@@ -177,18 +177,6 @@ static int set_page_mode(struct kvm_info *kvm_info){
 		return -1;
 	}
 
-
-	if(ioctl(kvm_info->vcpu_fd, KVM_GET_REGS, &kvm_info->regs) < 0){
-		perror("failed to get vcpu regs");
-		return -1;
-	}
-	//set pc to GUESR_VA_START
-	kvm_info->regs.rip = GUEST_VA_START;
-	kvm_info->regs.rflags = 0x2;
-	if(ioctl(kvm_info->vcpu_fd, KVM_SET_REGS, &kvm_info->regs) < 0){
-		perror("failed to set vcpu regs");
-		return -1;
-	}
 	return 0;
 }
 
@@ -252,6 +240,21 @@ int load_file(struct kvm_info *kvm_info, const char *file_name){
 }
 
 int kvm_run(struct kvm_info *kvm_info){
+
+	if(ioctl(kvm_info->vcpu_fd, KVM_GET_REGS, &kvm_info->regs) < 0){
+		perror("failed to get vcpu regs");
+		return -1;
+	}
+	//set pc to GUESR_VA_START
+	kvm_info->regs.rip = GUEST_VA_START;
+	kvm_info->regs.rflags = 0x2;
+
+	//run vm and check result
+	if(ioctl(kvm_info->vcpu_fd, KVM_SET_REGS, &kvm_info->regs) < 0){
+		perror("failed to set vcpu regs");
+		return -1;
+	}
+
 	int ret = ioctl(kvm_info->vcpu_fd, KVM_RUN, 0);
 	if(ret < 0){
 		perror("filed to run kvm");
